@@ -18,12 +18,12 @@ bot = telebot.TeleBot(os.environ.get('TOKEN'))
 
 @bot.message_handler(commands=["start"])
 def handle_start(message):
-    bot.send_message(message.chat.id, "Привет!  Напиши мне сложность и теги через пробел или id задачи в формате 12x")
+    bot.send_message(message.chat.id, "Привет!  Напиши мне сложность и теги через запятую или id задачи в формате 12x")
 
 
 @bot.message_handler(func=lambda message: True)
 def handle_text(message):
-    text = message.text.split()
+    text = message.text.split(',')
     cur = conn.cursor()
 
     if text[0]=='tags':
@@ -32,25 +32,27 @@ def handle_text(message):
             FROM (
             SELECT unnest(string_to_array(tags, ',')) AS tag
             FROM my_table) AS subquery""")
-    elif len(text)>1:
-        tags = ' '.join(text[1:])
-        cur.execute(f"""
-            SELECT id, name, rating, count, tags
-            FROM my_table
-            WHERE rating = '{text[0]}' AND tags LIKE '{tags}'
-            LIMIT 10""")
-    elif text[0].isdigit():
-        cur.execute(f"""
+    else:
+        if text[0].isdigit() and len(text)==1:
+            cur.execute(f"""
             SELECT id, name, rating, count, tags
             FROM my_table
             WHERE rating = '{text[0]}'
             LIMIT 10""")
-    else:
-        cur.execute(f"""
-            SELECT id, name, rating, count, tags
-            FROM my_table
-            WHERE id = '{text[0]}'
-            LIMIT 10""")
+        elif text[0].isdigit() and len(text)>1:
+            tags = ' '.join(text[1:])
+            cur.execute(f"""
+                SELECT id, name, rating, count, tags
+                FROM my_table
+                WHERE rating = '{text[0]}' AND tags LIKE '{tags}'
+                LIMIT 10""")
+        else:
+            tags = ' '.join(text)
+            cur.execute(f"""
+                SELECT id, name, rating, count, tags
+                FROM my_table
+                WHERE tags LIKE '{tags}' or id LIKE '{tags}'
+                LIMIT 10""")
     
     rows = cur.fetchall()
     cur.close()

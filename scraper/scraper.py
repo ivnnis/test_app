@@ -21,7 +21,7 @@ def main():
                     count TEXT,
                     tags TEXT)""")
 
-    url = 'https://codeforces.com/problemset?order=BY_SOLVED_DESC'
+    url = 'https://codeforces.com/problemset?order=BY_SOLVED_DESC&locale=ru'
     response = requests.get(url)
     html = response.content
     soup = BeautifulSoup(html, 'html.parser')
@@ -31,7 +31,7 @@ def main():
     data = []
 
     for page in range(1, pages+1):
-        response = requests.get(f'https://codeforces.com/problemset/page/{page}?order=BY_SOLVED_DESC')
+        response = requests.get(f'https://codeforces.com/problemset/page/{page}?order=BY_SOLVED_DESC&locale=ru')
         html = response.content
 
         soup = BeautifulSoup(html, 'html.parser')
@@ -57,7 +57,6 @@ def main():
             if row:
                 data.append(row)
 
-    print(f"pages {len(data)}")
 
     for row in data:
         cursor.execute("SELECT * FROM my_table WHERE id = %s", (row[0],))
