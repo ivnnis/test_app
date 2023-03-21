@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    image: bot-image
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: user
+      POSTGRES_DB: my_database
+      TOKEN: 6024382097:AAGxIX9aLCSVBQOn8Juvro7XRzLJAFw8lh4
+    ports:
+    - "443:443"
+    depends_on:
+      - db
+  scraper:
+    build:
+      context: ./scraper
+      dockerfile: Dockerfile
+    image: scraper-image
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: user
+      POSTGRES_DB: my_database
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: user
+      POSTGRES_DB: my_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
